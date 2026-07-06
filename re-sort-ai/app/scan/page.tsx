@@ -3,7 +3,7 @@ import { Sparkles } from "lucide-react";
 import { Navbar } from "../components/layout/navbar";
 import { Footer } from "../components/layout/footer";
 import { ScanWorkspace } from "../components/scan/scan-workspace";
-import { EcoChat } from "../components/scan/eco-chat";
+import { ChatGate } from "../components/scan/chat-gate";
 
 export const metadata: Metadata = {
   title: "Scan — ReSort AI",
@@ -36,7 +36,7 @@ export default function ScanPage() {
             <h2 className="text-2xl font-semibold tracking-tight">Ask the Eco Assistant</h2>
             <p className="mt-2 text-muted-foreground">Not sure where something goes? Just ask.</p>
             <div className="mt-6 max-w-2xl">
-              <EcoChat />
+              <ChatGate />
             </div>
           </div>
         </section>

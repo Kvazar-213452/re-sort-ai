@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
-import { Award } from "lucide-react";
+import { Trophy } from "lucide-react";
 import { Navbar } from "../components/layout/navbar";
 import { Footer } from "../components/layout/footer";
-import { ComingSoon } from "../components/ui/coming-soon";
+import { Leaderboard } from "../components/awards/leaderboard";
+import { RankLadder } from "../components/awards/rank-ladder";
 
 export const metadata: Metadata = {
   title: "Awards — ReSort AI",
-  description: "Badges, levels, and daily challenges for sorting waste the right way.",
+  description: "Leaderboard and eco ranks for sorting waste the right way.",
 };
 
 export default function AwardsPage() {
@@ -14,16 +15,29 @@ export default function AwardsPage() {
     <div className="flex min-h-full flex-col bg-background text-foreground">
       <Navbar />
       <main className="flex-1">
-        <ComingSoon
-          icon={Award}
-          title="Badges & challenges"
-          description="Earn XP for every correct scan, level up from Eco Beginner to Eco Hero, and unlock badges."
-          points={[
-            "Full badge collection with unlock progress",
-            "Daily and weekly challenges",
-            "Leaderboard among friends",
-          ]}
-        />
+        <section className="mx-auto max-w-4xl px-6 py-16">
+          <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-foreground/70">
+            <Trophy className="size-3.5 text-accent" />
+            Leaderboard
+          </div>
+          <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">Top eco players</h1>
+          <p className="mt-4 text-lg text-muted-foreground">
+            Earn 6-17 XP for every unique scan — the more an item harms the environment when sorted wrong, the
+            more it&apos;s worth.
+          </p>
+
+          <div className="mt-10">
+            <Leaderboard />
+          </div>
+
+          <div className="mt-16">
+            <h2 className="text-xl font-semibold tracking-tight">Eco ranks</h2>
+            <p className="mt-2 text-muted-foreground">Climb the ranks as your XP grows.</p>
+            <div className="mt-6">
+              <RankLadder />
+            </div>
+          </div>
+        </section>
       </main>
       <Footer />
     </div>

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getCurrentUser } from "@/app/lib/auth";
 import { chatCompletion, OpenAIError } from "@/app/lib/openai";
 import type { ChatMessage } from "@/app/lib/types";
 
@@ -9,6 +10,11 @@ const SYSTEM_PROMPT =
   "yellow = paper, green = organic, red = hazardous.";
 
 export async function POST(request: Request) {
+  const user = await getCurrentUser().catch(() => null);
+  if (!user) {
+    return NextResponse.json({ error: "Sign in to chat with the Eco Assistant." }, { status: 401 });
+  }
+
   let payload: { messages?: ChatMessage[] };
   try {
     payload = await request.json();

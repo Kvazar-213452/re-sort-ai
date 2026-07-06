@@ -3,12 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Award, History, Home, Menu, Recycle, ScanLine, User, X } from "lucide-react";
+import { Award, History, Home, LogIn, Menu, Recycle, ScanLine, Target, User, X } from "lucide-react";
+import { useAuth } from "../providers/auth-provider";
 import { ThemeToggle } from "./theme-toggle";
 
 const links = [
   { href: "/", label: "Main", icon: Home },
   { href: "/scan", label: "Scan", icon: ScanLine },
+  { href: "/challenge", label: "Challenge", icon: Target },
   { href: "/profile", label: "Profile", icon: User },
   { href: "/history", label: "History", icon: History },
   { href: "/awards", label: "Awards", icon: Award },
@@ -17,6 +19,7 @@ const links = [
 export function Navbar() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const { user, loading } = useAuth();
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/80 bg-background/75 backdrop-blur-md">
@@ -48,8 +51,9 @@ export function Navbar() {
           })}
         </nav>
 
-        <div className="hidden items-center md:flex">
+        <div className="hidden items-center gap-3 md:flex">
           <ThemeToggle />
+          {!loading && (user ? <AuthChip name={user.name} avatar={user.avatar} xp={user.xp} /> : <SignInButton />)}
         </div>
 
         <div className="flex items-center gap-2 md:hidden">
@@ -84,9 +88,60 @@ export function Navbar() {
                 </Link>
               );
             })}
+            <div className="mt-2 border-t border-border pt-3">
+              {!loading &&
+                (user ? (
+                  <AuthChip name={user.name} avatar={user.avatar} xp={user.xp} onNavigate={() => setOpen(false)} />
+                ) : (
+                  <SignInButton onNavigate={() => setOpen(false)} />
+                ))}
+            </div>
           </nav>
         </div>
       )}
     </header>
+  );
+}
+
+function SignInButton({ onNavigate }: { onNavigate?: () => void }) {
+  return (
+    <Link
+      href="/login"
+      onClick={onNavigate}
+      className="inline-flex h-9 items-center gap-1.5 rounded-full bg-accent px-4 text-sm font-medium text-accent-foreground transition-transform hover:scale-[1.03]"
+    >
+      <LogIn className="size-3.5" />
+      Sign in
+    </Link>
+  );
+}
+
+function AuthChip({
+  name,
+  avatar,
+  xp,
+  onNavigate,
+}: {
+  name: string;
+  avatar: string | null;
+  xp: number;
+  onNavigate?: () => void;
+}) {
+  return (
+    <Link
+      href="/profile"
+      onClick={onNavigate}
+      className="flex items-center gap-2 rounded-full border border-border py-1 pl-1 pr-3 text-sm transition-colors hover:border-accent/40 hover:bg-muted"
+    >
+      <span className="flex size-7 items-center justify-center overflow-hidden rounded-full bg-accent-soft text-xs font-semibold text-accent">
+        {avatar ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={avatar} alt="" className="h-full w-full object-cover" />
+        ) : (
+          name[0]?.toUpperCase()
+        )}
+      </span>
+      <span className="font-medium">{xp} XP</span>
+    </Link>
   );
 }

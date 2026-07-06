@@ -2,7 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 
-export function ProgressBar({ value, className = "" }: { value: number; className?: string }) {
+export function ProgressBar({
+  value,
+  className = "",
+  barClassName = "bg-accent",
+}: {
+  value: number;
+  className?: string;
+  barClassName?: string;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
 
@@ -25,7 +33,7 @@ export function ProgressBar({ value, className = "" }: { value: number; classNam
   return (
     <div ref={ref} className={`h-2 w-full overflow-hidden rounded-full bg-muted ${className}`}>
       <div
-        className="h-full rounded-full bg-accent transition-[width] duration-[1200ms] ease-out"
+        className={`h-full rounded-full ${barClassName} transition-[width] duration-[1200ms] ease-out`}
         style={{ width: `${width}%` }}
       />
     </div>

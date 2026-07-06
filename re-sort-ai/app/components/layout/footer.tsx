@@ -17,6 +17,7 @@ const columns = [
     title: "Account",
     links: [
       { label: "Profile", href: "/profile" },
+      { label: "Daily Challenge", href: "/challenge" },
       { label: "History", href: "/history" },
       { label: "Awards", href: "/awards" },
     ],

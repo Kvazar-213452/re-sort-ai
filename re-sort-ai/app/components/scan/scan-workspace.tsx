@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Camera, Check, Droplet, Leaf, Recycle, Sparkles, Upload, Video, X, Zap } from "lucide-react";
+import Link from "next/link";
+import { Camera, Check, Droplet, Leaf, Recycle, Sparkles, Trophy, Upload, Video, X, Zap } from "lucide-react";
 import { BinLegend } from "../ui/bin-legend";
 import { ProgressBar } from "../ui/progress-bar";
+import { useAuth } from "../providers/auth-provider";
+import { ScanChat } from "./scan-chat";
 import { fileToDataUrl, resizeDataUrl } from "../../lib/image";
 import { BIN_META } from "../../lib/bins";
-import type { ScanResult } from "../../lib/types";
+import type { ScanApiResponse, ScanResult, XpInfo } from "../../lib/types";
 
 const primaryBtn =
   "inline-flex h-10 items-center gap-2 rounded-full bg-accent px-4 text-sm font-medium text-accent-foreground transition-transform hover:scale-[1.03]";
@@ -14,11 +17,14 @@ const secondaryBtn =
   "inline-flex h-10 items-center gap-2 rounded-full border border-border px-4 text-sm font-medium transition-colors hover:bg-muted hover:-translate-y-0.5";
 
 export function ScanWorkspace() {
+  const { user, refresh } = useAuth();
   const [image, setImage] = useState<string | null>(null);
   const [fastMode, setFastMode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ScanResult | null>(null);
+  const [xpInfo, setXpInfo] = useState<XpInfo | null>(null);
+  const [historyId, setHistoryId] = useState<string | null>(null);
   const [resultKey, setResultKey] = useState(0);
   const [cameraActive, setCameraActive] = useState(false);
 
@@ -94,8 +100,14 @@ export function ScanWorkspace() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Something went wrong.");
-      setResult(data as ScanResult);
+      const payload = data as ScanApiResponse;
+      setResult(payload.result);
+      setXpInfo(payload.xp);
+      setHistoryId(payload.historyId);
       setResultKey((k) => k + 1);
+      if (payload.xp && !payload.xp.duplicate) {
+        await refresh();
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
@@ -106,6 +118,8 @@ export function ScanWorkspace() {
   function reset() {
     setImage(null);
     setResult(null);
+    setXpInfo(null);
+    setHistoryId(null);
     setError(null);
   }
 
@@ -219,9 +233,48 @@ export function ScanWorkspace() {
             </p>
           </div>
         ) : (
-          <ResultCard key={resultKey} result={result} />
+          <>
+            <XpBanner xp={xpInfo} signedIn={Boolean(user)} />
+            <ResultCard key={resultKey} result={result} />
+            {historyId && (
+              <div className="mt-4">
+                <ScanChat key={historyId} historyId={historyId} objectName={result.object} />
+              </div>
+            )}
+          </>
         )}
       </div>
+    </div>
+  );
+}
+
+function XpBanner({ xp, signedIn }: { xp: XpInfo | null; signedIn: boolean }) {
+  if (!signedIn) {
+    return (
+      <Link
+        href="/login"
+        className="mt-4 flex animate-fade-up items-center gap-2 rounded-xl border border-dashed border-border px-3 py-2.5 text-xs text-muted-foreground transition-colors hover:border-accent/40 hover:text-foreground"
+      >
+        <Trophy className="size-3.5 shrink-0 text-accent" />
+        Sign in to earn XP and chat about this scan
+      </Link>
+    );
+  }
+
+  if (!xp) return null;
+
+  if (xp.duplicate) {
+    return (
+      <div className="mt-4 flex animate-fade-up items-center gap-2 rounded-xl bg-muted px-3 py-2.5 text-xs text-muted-foreground">
+        <Trophy className="size-3.5 shrink-0" />
+        Already scanned this exact photo before — no XP this time.
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-4 flex animate-fade-up items-center gap-2 rounded-xl bg-accent-soft px-3 py-2.5 text-xs font-medium text-accent">
+      <Trophy className="size-3.5 shrink-0 animate-pop" />+{xp.awarded} XP earned — {xp.total} XP total
     </div>
   );
 }

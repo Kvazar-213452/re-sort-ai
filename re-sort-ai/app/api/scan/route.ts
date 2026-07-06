@@ -1,8 +1,18 @@
+import { createHash } from "crypto";
 import { NextResponse } from "next/server";
+import { getCurrentUser } from "@/app/lib/auth";
 import { chatCompletion, OpenAIError } from "@/app/lib/openai";
-import type { ScanMode, ScanResult, WasteBin } from "@/app/lib/types";
+import { getUsersCollection, type UserDocument } from "@/app/lib/user";
+import { getHistoryCollection } from "@/app/lib/history";
+import type { ScanApiResponse, ScanMode, ScanResult, WasteBin, XpInfo } from "@/app/lib/types";
 
 const BINS: readonly WasteBin[] = ["plastic", "paper", "organic", "hazardous", "general"];
+const MIN_XP = 6;
+const MAX_XP = 17;
+
+const XP_HINT = `"xpReward": number // a whole number from ${MIN_XP} to ${MAX_XP}. Rate how much environmental` +
+  ` harm results from sorting this item incorrectly — low for easily recyclable low-impact items, high for` +
+  ` hazardous or long-lasting pollutants.`;
 
 const FULL_SCHEMA_HINT = `Respond with strict JSON only, matching this exact shape:
 {
@@ -14,14 +24,16 @@ const FULL_SCHEMA_HINT = `Respond with strict JSON only, matching this exact sha
   "recyclable": boolean,
   "decompositionTime": string,   // e.g. "450 years", "2-4 weeks"
   "environmentalImpact": string, // one short sentence
-  "reuseIdea": string            // one short, creative reuse or DIY idea
+  "reuseIdea": string,           // one short, creative reuse or DIY idea
+  ${XP_HINT}
 }`;
 
 const FAST_SCHEMA_HINT = `Respond with strict JSON only, matching this exact shape:
 {
   "object": string,
   "bin": "plastic" | "paper" | "organic" | "hazardous" | "general",
-  "confidence": number // a whole number from 0 to 100, e.g. 92. Never a fraction like 0.92.
+  "confidence": number, // a whole number from 0 to 100, e.g. 92. Never a fraction like 0.92.
+  ${XP_HINT}
 }`;
 
 export async function POST(request: Request) {
@@ -87,13 +99,69 @@ export async function POST(request: Request) {
             reuseIdea: String(parsed.reuseIdea ?? ""),
           };
 
-    return NextResponse.json(result);
+    const recorded = await recordScan(image, result, normalizeXp(parsed.xpReward));
+
+    const response: ScanApiResponse = {
+      result,
+      xp: recorded?.xp ?? null,
+      historyId: recorded?.historyId ?? null,
+    };
+    return NextResponse.json(response);
   } catch (error) {
     if (error instanceof OpenAIError) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
     return NextResponse.json({ error: "Could not analyze the image. Please try again." }, { status: 500 });
   }
+}
+
+async function recordScan(
+  image: string,
+  result: ScanResult,
+  xpReward: number
+): Promise<{ xp: XpInfo; historyId: string | null } | null> {
+  let user: UserDocument | null;
+  try {
+    user = await getCurrentUser();
+  } catch {
+    return null;
+  }
+  if (!user) return null;
+
+  const imageHash = createHash("sha256").update(image).digest("hex");
+  const duplicate = user.scannedHashes.includes(imageHash);
+  const awarded = duplicate ? 0 : xpReward;
+  const total = user.xp + awarded;
+  let historyId: string | null = null;
+
+  try {
+    if (!duplicate) {
+      const users = await getUsersCollection();
+      await users.updateOne(
+        { _id: user._id },
+        {
+          $inc: { xp: awarded },
+          $push: { scannedHashes: { $each: [imageHash], $slice: -500 } },
+        }
+      );
+    }
+
+    const history = await getHistoryCollection();
+    const inserted = await history.insertOne({
+      userId: user._id!,
+      image,
+      result,
+      xpAwarded: awarded,
+      duplicate,
+      chatMessages: [],
+      scannedAt: new Date(),
+    });
+    historyId = inserted.insertedId.toString();
+  } catch {
+    // XP/history bookkeeping is best-effort — the scan result itself already succeeded.
+  }
+
+  return { xp: { awarded, total, duplicate }, historyId };
 }
 
 function normalizeBin(value: unknown): WasteBin {
@@ -106,4 +174,10 @@ function normalizeConfidence(value: unknown): number {
   // Some responses return a 0-1 fraction instead of a 0-100 percentage — rescale those.
   if (n > 0 && n <= 1) n *= 100;
   return Math.max(0, Math.min(100, Math.round(n)));
+}
+
+function normalizeXp(value: unknown): number {
+  const n = Number(value);
+  if (Number.isNaN(n)) return MIN_XP;
+  return Math.max(MIN_XP, Math.min(MAX_XP, Math.round(n)));
 }

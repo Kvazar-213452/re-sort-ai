@@ -28,3 +28,15 @@ export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
 }
+
+export interface XpInfo {
+  awarded: number;
+  total: number;
+  duplicate: boolean;
+}
+
+export interface ScanApiResponse {
+  result: ScanResult;
+  xp: XpInfo | null;
+  historyId: string | null;
+}
