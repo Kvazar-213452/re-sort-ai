@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/app/lib/auth";
+import { config } from "@/app/lib/config";
 import { chatCompletion, OpenAIError } from "@/app/lib/openai";
 import type { ChatMessage } from "@/app/lib/types";
 
@@ -29,9 +30,9 @@ export async function POST(request: Request) {
 
   try {
     const data = await chatCompletion({
-      messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages.slice(-10)],
-      temperature: 0.5,
-      max_tokens: 300,
+      messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages.slice(-config.chat.historyLimit)],
+      temperature: config.chat.temperature,
+      max_tokens: config.chat.maxTokens,
     });
 
     const reply = data?.choices?.[0]?.message?.content;

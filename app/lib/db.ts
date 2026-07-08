@@ -1,6 +1,7 @@
 import { MongoClient, type Db } from "mongodb";
+import { config } from "./config";
 
-const DB_NAME = "user_mvp";
+const DB_NAME = config.db.name;
 
 let clientPromise: Promise<MongoClient> | null = null;
 

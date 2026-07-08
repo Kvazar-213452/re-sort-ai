@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { getCurrentUser } from "@/app/lib/auth";
+import { config } from "@/app/lib/config";
 import { chatCompletion, OpenAIError } from "@/app/lib/openai";
 import { getHistoryCollection } from "@/app/lib/history";
 import type { ChatMessage, ScanResult } from "@/app/lib/types";
@@ -52,7 +53,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: "Scan not found." }, { status: 404 });
     }
 
-    const priorMessages = (doc.chatMessages ?? []).slice(-10);
+    const priorMessages = (doc.chatMessages ?? []).slice(-config.chat.historyLimit);
     const userMessage: ChatMessage = { role: "user", content: message };
 
     const data = await chatCompletion({
@@ -68,8 +69,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         ...priorMessages.map((m) => ({ role: m.role, content: m.content })),
         { role: "user", content: message },
       ],
-      temperature: 0.5,
-      max_tokens: 300,
+      temperature: config.chat.temperature,
+      max_tokens: config.chat.maxTokens,
     });
 
     const reply = data?.choices?.[0]?.message?.content;

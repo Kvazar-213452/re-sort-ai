@@ -1,14 +1,14 @@
 import { createHash } from "crypto";
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/app/lib/auth";
+import { config } from "@/app/lib/config";
 import { chatCompletion, OpenAIError } from "@/app/lib/openai";
 import { getUsersCollection, type UserDocument } from "@/app/lib/user";
 import { getHistoryCollection } from "@/app/lib/history";
 import type { ScanApiResponse, ScanMode, ScanResult, WasteBin, XpInfo } from "@/app/lib/types";
 
 const BINS: readonly WasteBin[] = ["plastic", "paper", "organic", "hazardous", "general"];
-const MIN_XP = 6;
-const MAX_XP = 17;
+const { minXp: MIN_XP, maxXp: MAX_XP } = config.scan;
 
 const XP_HINT = `"xpReward": number // a whole number from ${MIN_XP} to ${MAX_XP}. Rate how much environmental` +
   ` harm results from sorting this item incorrectly — low for easily recyclable low-impact items, high for` +
@@ -68,8 +68,8 @@ export async function POST(request: Request) {
         },
       ],
       response_format: { type: "json_object" },
-      temperature: 0.3,
-      max_tokens: 400,
+      temperature: config.scan.temperature,
+      max_tokens: config.scan.maxTokens,
     });
 
     const content = data?.choices?.[0]?.message?.content;

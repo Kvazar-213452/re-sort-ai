@@ -1,6 +1,7 @@
+import { config } from "./config";
 import type { City, RecyclingBin, RecyclingPoint } from "./containers";
 
-const OVERPASS_ENDPOINTS = ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"];
+const OVERPASS_ENDPOINTS = config.map.overpassEndpoints;
 
 const BIN_TAG_MAP: Record<string, RecyclingBin> = {
   "recycling:plastic": "plastic",
@@ -25,7 +26,7 @@ const BIN_TAG_MAP: Record<string, RecyclingBin> = {
   "recycling:household_waste": "general",
 };
 
-const MAX_POINTS = 30;
+const MAX_POINTS = config.map.maxPoints;
 
 interface OverpassElement {
   id: number;

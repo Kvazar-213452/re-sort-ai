@@ -1,3 +1,5 @@
+import { config } from "./config";
+
 export function fileToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -7,7 +9,11 @@ export function fileToDataUrl(file: File): Promise<string> {
   });
 }
 
-export function resizeDataUrl(dataUrl: string, maxDim = 1024, quality = 0.85): Promise<string> {
+export function resizeDataUrl(
+  dataUrl: string,
+  maxDim: number = config.image.maxDim,
+  quality: number = config.image.quality
+): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {

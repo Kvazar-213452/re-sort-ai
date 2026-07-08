@@ -1,5 +1,6 @@
 import type { WasteBin } from "./types";
 import { BIN_META } from "./bins";
+import { config } from "./config";
 
 export type RecyclingBin = WasteBin | "glass";
 
@@ -23,7 +24,7 @@ export interface City {
   bbox: [number, number, number, number];
 }
 
-export const GERMANY_VIEW = { lat: 51.1657, lng: 10.4515, zoom: 6 };
+export const GERMANY_VIEW = config.map.defaultView;
 
 export const CITIES: City[] = [
   { slug: "berlin", name: "Berlin", lat: 52.52, lng: 13.405, zoom: 12, bbox: [52.42, 13.15, 52.62, 13.65] },

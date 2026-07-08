@@ -2,10 +2,11 @@ import bcrypt from "bcryptjs";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { ObjectId } from "mongodb";
+import { config } from "./config";
 import { getUsersCollection, type UserDocument } from "./user";
 
-const COOKIE_NAME = "resort_session";
-const SESSION_SECONDS = 60 * 60 * 24 * 30; // 30 days
+const COOKIE_NAME = config.auth.cookieName;
+const SESSION_SECONDS = config.auth.sessionSeconds;
 
 function getSecretKey() {
   const secret = process.env.AUTH_SECRET;
@@ -16,7 +17,7 @@ function getSecretKey() {
 }
 
 export function hashPassword(password: string) {
-  return bcrypt.hash(password, 10);
+  return bcrypt.hash(password, config.auth.bcryptSaltRounds);
 }
 
 export function verifyPassword(password: string, hash: string) {
