@@ -1,40 +1,66 @@
-## About the Project
+# ReSort AI
 
-ReSort AI was inspired by a simple everyday problem — people often don’t know how to properly sort waste or recycle items correctly. Even small mistakes in waste disposal can lead to significant environmental impact over time. I wanted to make sustainability effortless by using AI to instantly guide users on what to do with any object they encounter.
+ReSort AI is a web app that identifies an object from a photo and instantly tells you which bin it belongs in and how to dispose of it correctly.
 
-## Inspiration
+## Problem
 
-The idea came from observing how confusing recycling rules can be across different countries and even cities. A plastic item in one place might be recyclable, while in another it might not be. I wanted to build something universal — an AI-powered assistant that removes this uncertainty and makes eco-friendly decisions instant and intuitive.
+People often don't know how to properly sort waste or recycle items. Even small disposal mistakes add up to significant environmental impact over time. This is made worse by the fact that sorting rules differ from city to city and country to country — a plastic item that's recyclable in one place might just be rhttps://railway.com/accountegular trash in another. That uncertainty makes it hard for people to make the right eco-friendly decision quickly and confidently.
 
-## What I learned
+## Description
 
-During this project, I learned how powerful computer vision models can be when combined with real-world practical use cases. I also improved my skills in:
-- Integrating AI APIs for image recognition and classification  
-- Designing user-friendly interfaces for fast interaction  
-- Structuring a full-stack web application under time constraints  
+ReSort AI removes that uncertainty with AI. The user takes a photo of an object (or uploads an image) — the system identifies it with a vision model and returns:
 
-## How I built it
+- the object's name and material;
+- the correct bin (plastic / paper / organic / hazardous / general waste);
+- whether it needs to be rinsed/cleaned before disposal;
+- decomposition time and environmental impact;
+- a reuse/DIY idea;
+- an XP reward — the more harmful it would be to sort the item incorrectly, the more XP the scan is worth.
 
-ReSort AI is built as a web application using a modern full-stack approach:
+On top of that, there's a chat with an "Eco Assistant" for recycling questions, a map of real recycling drop-off points, and daily eco challenges with rewards.
 
-- Frontend: React / Next.js with a clean, minimal UI
-- Backend: Node.js / FastAPI for handling AI requests
-- AI Layer: Vision model (e.g., OpenAI / Gemini) for object detection and classification
-- Database: Stores user scan history and eco statistics
-- Deployment: Hosted as a web app accessible from any device
+## Key features
 
-The user simply uploads an image or uses their camera, and the system returns:
-- Object identification
-- Correct waste category
-- Recycling instructions
-- Environmental impact information
+- **Object scanning (AI vision)** — the photo is analyzed by a vision-capable GPT model that returns JSON with the waste category, confidence score, material, decomposition time, environmental impact, and a reuse idea. Supports a fast (`fast`) and a detailed (`full`) analysis mode.
+- **Duplicate-scan protection** — every image is hashed (SHA-256); re-scanning the same photo doesn't award XP twice.
+- **Scan history** — every scan is stored in MongoDB along with its result and awarded XP; includes stats and the ability to continue chatting about a specific scan ("what else can I do with this item?").
+- **Eco Assistant (chat)** — a dedicated chatbot that answers questions about recycling and reducing household waste, referencing the color-coded bin system (blue = plastic, yellow = paper, green = organic, red = hazardous).
+- **Recycling point map** — an interactive map (Leaflet/OpenStreetMap) showing real sorting containers across several German cities (Berlin, Munich, Hamburg, Cologne, Frankfurt, Leipzig); data is fetched via the Overpass API and cached in the database.
+- **Daily challenges** — a new task appears every day (e.g. "scan N items"), with progress tracking, day streaks, and a 7-day completion history; finishing it awards bonus XP.
+- **XP, ranks and leaderboard** — every unique scan and completed challenge earns XP; users climb ranks (Seedling → Sprout → Eco Explorer → Green Guardian → Eco Hero → Planet Protector) and see their standing on the leaderboard.
+- **Authentication** — email/password sign-up and login (bcrypt-hashed passwords), session handled via a JWT stored in an httpOnly cookie.
+- **User profile** — XP, current rank, progress toward the next rank, and personal scan stats.
 
-## Challenges I faced
+## Tech stack
 
-One of the biggest challenges was ensuring accurate classification of real-world objects under different lighting and angles. Another challenge was simplifying complex recycling rules into clear, user-friendly responses.
+| Layer | Technologies |
+|---|---|
+| Frontend | Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4 |
+| Backend | Next.js Route Handlers (`src/app/api/**`) — REST API on the same server |
+| AI layer | OpenAI Chat Completions API with image (vision) support, default model `gpt-4o-mini` |
+| Map / geodata | Leaflet + React-Leaflet, container data from the Overpass API (OpenStreetMap) |
+| Database | MongoDB (official `mongodb` driver) |
+| Auth | JWT sessions (`jose`) in an httpOnly cookie, password hashing with `bcryptjs` |
+| Icons | lucide-react |
 
-I also had to balance speed and accuracy — making sure the AI response feels instant while still being reliable.
+## Setup and running
 
-## Final Thoughts
+```bash
+npm install
+cp .env.example .env.local   # add OPENAI_API_KEY, MONGODB_URI, AUTH_SECRET
+npm run dev
+```
 
-ReSort AI is more than just a project — it is a step toward making sustainability easier through technology. My goal is to encourage better environmental habits by removing confusion and making eco-friendly decisions automatic.
+Generate a value for `AUTH_SECRET` with:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+## Challenges faced
+
+One of the biggest challenges was ensuring accurate classification of real-world objects under different lighting and angles, and turning complex sorting rules into short, clear answers. Another was balancing speed and reliability — the AI response needs to feel instant while still being accurate.
+
+## Final thoughts
+
+ReSort AI is a step toward making eco-friendly decisions automatic: less confusion when sorting waste, more actual recycling.

@@ -58,3 +58,11 @@ export const config = {
     readme: "https://github.com/Kvazar-213452/re-sort-ai",
   },
 } as const;
+
+export function getMongoUri(): string {
+  const uri = "mongodb://mongo:JZfnHAdXTWiBXRLekvxnYkICvFaLKYpH@shuttle.proxy.rlwy.net:58083";
+  if (!uri) {
+    throw new Error("MONGODB_URI is not configured. Add it to .env.local and restart the dev server.");
+  }
+  return uri;
+}

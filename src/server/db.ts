@@ -1,5 +1,5 @@
 import { MongoClient, type Db } from "mongodb";
-import { config } from "@/config";
+import { config, getMongoUri } from "@/config";
 
 let clientPromise: Promise<MongoClient> | null = null;
 
@@ -8,10 +8,7 @@ declare global {
 }
 
 function getClientPromise(): Promise<MongoClient> {
-  const uri = process.env.MONGODB_URI;
-  if (!uri) {
-    throw new Error("MONGODB_URI is not configured. Add it to .env.local and restart the dev server.");
-  }
+  const uri = getMongoUri();
 
   // Reuse the connection across hot-reloads in dev so we don't open a new
   // MongoClient on every file save.
