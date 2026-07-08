@@ -2,9 +2,17 @@
 
 ReSort AI is a web app that identifies an object from a photo and instantly tells you which bin it belongs in and how to dispose of it correctly.
 
+## Demo
+
+Live demo: [re-sort-ai.vercel.app](https://re-sort-ai.vercel.app/)
+
+Test account:
+- Email: `test@gmail.com`
+- Password: `12345678`
+
 ## Problem
 
-People often don't know how to properly sort waste or recycle items. Even small disposal mistakes add up to significant environmental impact over time. This is made worse by the fact that sorting rules differ from city to city and country to country — a plastic item that's recyclable in one place might just be rhttps://railway.com/accountegular trash in another. That uncertainty makes it hard for people to make the right eco-friendly decision quickly and confidently.
+People often don't know how to properly sort waste or recycle items. Even small disposal mistakes add up to significant environmental impact over time. This is made worse by the fact that sorting rules differ from city to city and country to country — a plastic item that's recyclable in one place might just be regular trash in another. That uncertainty makes it hard for people to make the right eco-friendly decision quickly and confidently.
 
 ## Description
 
@@ -42,20 +50,6 @@ On top of that, there's a chat with an "Eco Assistant" for recycling questions, 
 | Database | MongoDB (official `mongodb` driver) |
 | Auth | JWT sessions (`jose`) in an httpOnly cookie, password hashing with `bcryptjs` |
 | Icons | lucide-react |
-
-## Setup and running
-
-```bash
-npm install
-cp .env.example .env.local   # add OPENAI_API_KEY, MONGODB_URI, AUTH_SECRET
-npm run dev
-```
-
-Generate a value for `AUTH_SECRET` with:
-
-```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-```
 
 ## Challenges faced
 
