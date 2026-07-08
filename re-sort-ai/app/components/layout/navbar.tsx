@@ -3,18 +3,27 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Award, History, Home, LogIn, Menu, Recycle, ScanLine, Target, User, X } from "lucide-react";
+import { Award, History, Home, LogIn, Menu, MapPinned, Recycle, ScanLine, Target, User, X } from "lucide-react";
 import { useAuth } from "../providers/auth-provider";
 import { ThemeToggle } from "./theme-toggle";
 
 const links = [
   { href: "/", label: "Main", icon: Home },
   { href: "/scan", label: "Scan", icon: ScanLine },
+  { href: "/map", label: "Map", icon: MapPinned, beta: true },
   { href: "/challenge", label: "Challenge", icon: Target },
   { href: "/profile", label: "Profile", icon: User },
   { href: "/history", label: "History", icon: History },
   { href: "/awards", label: "Awards", icon: Award },
 ];
+
+function BetaTag() {
+  return (
+    <span className="rounded-full bg-accent px-1.5 py-0.5 text-[9px] font-bold leading-none tracking-wide text-accent-foreground">
+      BETA
+    </span>
+  );
+}
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
@@ -46,6 +55,7 @@ export function Navbar() {
               >
                 <link.icon className="size-4" />
                 {link.label}
+                {link.beta && <BetaTag />}
               </Link>
             );
           })}
@@ -85,6 +95,7 @@ export function Navbar() {
                 >
                   <link.icon className="size-4" />
                   {link.label}
+                  {link.beta && <BetaTag />}
                 </Link>
               );
             })}
